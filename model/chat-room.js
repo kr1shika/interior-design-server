@@ -1,46 +1,39 @@
 const mongoose = require("mongoose");
 
-const messageSchema = new mongoose.Schema({
-    sender: {
+const chatRoomSchema = new mongoose.Schema({
+    senderId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "User",
         required: true
     },
-    content: {
+    receiverId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+        required: true
+    },
+    roomId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "ChatRoom",
+        required: true
+    },
+    projectId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Project",
+        required: true
+    },
+    text: {
         type: String,
         required: true
     },
     attachments: [{
-        url: String,
-        file_type: String
+        type: String,
     }],
     read_by: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "User"
     }],
-    timestamp: {
-        type: Date,
-        default: Date.now
-    }
+}, {
+    timestamp: true
 });
-
-const chatRoomSchema = new mongoose.Schema({
-    project: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Project",
-        required: true
-    },
-    participants: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-        required: true
-    }],
-    messages: [messageSchema],
-    last_message: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Message"
-    }
-}, { timestamps: true });
-
-const ChatRoom = mongoose.model("ChatRoom", chatRoomSchema);
-module.exports = ChatRoom;
+const Chatroom = mongoose.model("Chatroom", chatRoomSchema);
+module.exports = Chatroom;
