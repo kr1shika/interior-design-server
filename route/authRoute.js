@@ -7,7 +7,6 @@ const {
     signup,
 } = require('../controller/authController.js');
 
-
 router.post('/signup', signup);
 
 router.post('/login', login);

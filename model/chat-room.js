@@ -11,11 +11,6 @@ const chatRoomSchema = new mongoose.Schema({
         ref: "User",
         required: true
     },
-    roomId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "ChatRoom",
-        required: true
-    },
     projectId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Project",
@@ -23,7 +18,7 @@ const chatRoomSchema = new mongoose.Schema({
     },
     text: {
         type: String,
-        required: true
+        required: false
     },
     attachments: [{
         type: String,

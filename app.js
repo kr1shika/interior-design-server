@@ -2,8 +2,10 @@ const express = require('express');
 const dotenv = require("dotenv");
 dotenv.config({ path: "./config/config.env" });
 const connectDB = require('./config/db');
-const userRouter = require("./route/userRoute");
+const projectRouter = require("./route/projectRoute");
 const authRouter = require("./route/authRoute");
+const chatRouter = require("./route/chatRoomroute");
+
 const cors = require("cors");
 const app = express();
 const PORT = 2005;
@@ -21,8 +23,8 @@ app.use(cors({
 app.use(express.json());
 
 app.use("/api/auth", authRouter);
-
-
+app.use("/api/project", projectRouter);
+app.use("/api/chat", chatRouter);
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
