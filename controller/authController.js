@@ -3,14 +3,13 @@ const { generateToken } = require("../config/util.js");
 const User = require("../model/user")
 
 const signup = async (req, res) => {
-    const { full_name, email, contact_no, password, role } = req.body;
+    const { full_name, email, password, role } = req.body;
 
     try {
         // Validation
         const errors = [];
         if (!full_name) errors.push("Full name is required");
         if (!email) errors.push("Email is required");
-        if (!contact_no) errors.push("Contact number is required");
         if (!password) errors.push("Password is required");
         if (!role) errors.push("Role is required");
         if (password.length < 8) errors.push("Password must be at least 8 characters");
@@ -31,7 +30,6 @@ const signup = async (req, res) => {
         const newUser = new User({
             full_name,
             email,
-            contact_no,
             password: hashedPassword,
             role
         });
@@ -46,7 +44,6 @@ const signup = async (req, res) => {
             full_name: newUser.full_name,
             email: newUser.email,
             role: newUser.role,
-            contact_no: newUser.contact_no,
             profile_picture: newUser.profile_picture
         });
 
@@ -77,7 +74,6 @@ const login = async (req, res) => {
             full_name: user.full_name,
             email: user.email,
             role: user.role,
-            contact_no: user.contact_no,
             profile_picture: user.profile_picture
         });
 

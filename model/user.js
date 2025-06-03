@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
     },
     contact_no: {
         type: String,
-        required: true
+        required: false
     },
     password: {
         type: String,
@@ -20,7 +20,7 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ["client", "designer"],
-        required: true,
+        // required: true,
         default: "client"
     },
     profilepic: {
@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema({
     },
     availablity: {
         type: Boolean,
-        default: true
+        default: false
     },
 })
 const User = mongoose.model("User", userSchema);
