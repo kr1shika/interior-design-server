@@ -5,6 +5,7 @@ const connectDB = require('./config/db');
 const projectRouter = require("./route/projectRoute");
 const authRouter = require("./route/authRoute");
 const chatRouter = require("./route/chatRoomroute");
+const userRouter = require("./route/userRoute");
 
 const cors = require("cors");
 const app = express();
@@ -21,6 +22,8 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+
+app.use("/api/user", userRouter);
 
 app.use("/api/auth", authRouter);
 app.use("/api/project", projectRouter);

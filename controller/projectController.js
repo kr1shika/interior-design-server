@@ -1,6 +1,21 @@
 const Project = require("../model/project.js");
 const Chatroom = require("../model/chat-room.js");
 
+const getUserProjects = async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const projects = await Project.find({
+      $or: [{ client: userId }, { designer: userId }],
+    });
+
+    res.status(200).json(projects);
+  } catch (error) {
+    console.error("Error fetching user projects:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
 const createProject = async (req, res) => {
   try {
     const {
@@ -40,6 +55,7 @@ const createProject = async (req, res) => {
 
     // Step 2: Create a system message in chatroom to initialize it
     const initialMessage = new Chatroom({
+      
       senderId: client,            // could also use "system" user if you have one
       receiverId: designer,
       projectId: newProject._id,
@@ -60,4 +76,4 @@ const createProject = async (req, res) => {
   }
 };
 
-module.exports = { createProject };
+module.exports = { createProject, getUserProjects };
