@@ -6,6 +6,7 @@ const projectRouter = require("./route/projectRoute");
 const authRouter = require("./route/authRoute");
 const chatRouter = require("./route/chatRoomroute");
 const userRouter = require("./route/userRoute");
+const quizRouter = require("./route/matchRoute");
 const path = require("path");
 
 const cors = require("cors");
@@ -30,6 +31,8 @@ app.use("/api/user", userRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/project", projectRouter);
 app.use("/api/chat", chatRouter);
+app.use("/api/quiz", quizRouter);
+
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
 });

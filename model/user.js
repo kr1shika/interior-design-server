@@ -55,6 +55,20 @@ const userSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    style_quiz: {
+        type: Map,
+        of: String,
+        default: {}
+    },
+    preferredTones: {
+        type: [String],
+        default: []
+    },
+    approach: {
+        type: String, // e.g. "Balanced", "Decorative", "Functional"
+        default: "Balanced"
+    }
+
 })
 const User = mongoose.model("User", userSchema);
 module.exports = User;

@@ -43,7 +43,7 @@ const updateUserProfile = async (req, res) => {
             return res.status(404).json({ message: "User not found" });
         }
 
-        const { full_name, bio, specialization, experience } = req.body;
+        const { full_name, bio, specialization, experience, preferredTones, approach } = req.body;
 
         if (full_name) user.full_name = full_name;
         if (bio) user.bio = bio;
@@ -55,6 +55,17 @@ const updateUserProfile = async (req, res) => {
                 return res.status(400).json({ message: "Experience must be a number" });
             }
             user.experience = parsedExp;
+        }
+
+        if (req.body.preferredTones) {
+            const tones = Array.isArray(req.body.preferredTones)
+                ? req.body.preferredTones
+                : [req.body.preferredTones]; // Handle single or multiple values
+            user.preferredTones = tones;
+        }
+
+        if (approach) {
+            user.approach = approach;
         }
 
         if (req.file) {
