@@ -6,6 +6,7 @@ const projectRouter = require("./route/projectRoute");
 const authRouter = require("./route/authRoute");
 const chatRouter = require("./route/chatRoomroute");
 const userRouter = require("./route/userRoute");
+const path = require("path");
 
 const cors = require("cors");
 const app = express();
@@ -15,6 +16,7 @@ require('dotenv').config();
 // Connect to MongoDB
 connectDB();
 dotenv.config({ path: "./config/config.env" });
+app.use("/profile_pics", express.static(path.join(__dirname, "profile_pics")));
 
 app.use(cors({
   origin: "http://localhost:5173",
