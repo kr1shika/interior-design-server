@@ -26,6 +26,10 @@ app.use(cors({
 }));
 app.use(express.json());
 
+const portfolioRouter = require("./route/portfolioROute");
+app.use("/api/portfolio", portfolioRouter);
+
+
 app.use("/api/user", userRouter);
 
 app.use("/api/auth", authRouter);

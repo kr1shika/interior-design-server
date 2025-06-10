@@ -32,12 +32,9 @@ const portfolioPostSchema = new mongoose.Schema({
     room_type: {
         type: String,
         enum: ["living_room", "bedroom", "kitchen", "bathroom", "office", "dining_room", "commercial", "other"],
-        required: true
-    },
-    location: {
-        type: String,
         required: false
     },
+
 
     view_count: {
         type: Number,
