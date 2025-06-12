@@ -46,45 +46,40 @@ const submitStyleQuiz = async (req, res) => {
     });
 
     function generateStyleAnalysis(answers) {
-      const traits = [];
+      const parts = [];
 
       if (answers["2"]) {
-        traits.push(`You resonate with a ${answers["2"]} style, often reflecting strong aesthetic identity.`);
+        parts.push(`You like the ${answers["2"]} style.`);
       }
 
       if (answers["3"] === "Calm and simple") {
-        traits.push("You prefer calm and subtle design choices, suggesting a minimalist and serene atmosphere.");
+        parts.push("You enjoy calm, clean spaces with a peaceful feel.");
       } else if (answers["3"] === "Bold and unique") {
-        traits.push("You enjoy bold, standout elements — you're not afraid to experiment.");
+        parts.push("You love bold choices and creative designs.");
       } else {
-        traits.push("You appreciate both bold accents and calm harmony.");
+        parts.push("You enjoy both bold features and peaceful elements.");
       }
 
       if (answers["4"]) {
-        traits.push(`Your preference for ${answers["4"]} shows your natural color inclination — warm, cool, or vibrant.`);
+        parts.push(`You’re drawn to ${answers["4"]} tones.`);
       }
 
       if (answers["5"]?.toLowerCase().includes("functional")) {
-        traits.push("You prioritize functionality and efficient use of space.");
+        parts.push("You prefer designs that are practical and useful.");
       } else if (answers["5"]?.toLowerCase().includes("decorative")) {
-        traits.push("You lean toward aesthetic beauty over practicality.");
+        parts.push("You prefer designs that focus on beauty and charm.");
       } else {
-        traits.push("You seek a balance between design and utility.");
+        parts.push("You like a mix of usefulness and beauty.");
       }
 
       if (answers["6"] === "Flexible, as long as it's perfect") {
-        traits.push("You're patient and care more about perfection than speed.");
+        parts.push("You’re flexible with time but want it done right.");
       } else {
-        traits.push(`You'd like the project completed ${answers["6"].toLowerCase()}, which shows your timing preference.`);
+        parts.push(`You’d prefer the project to be done ${answers["6"].toLowerCase()}.`);
       }
 
-      if (answers["7"]) {
-        traits.push(`Your selected budget range (${answers["7"]}) gives insight into your investment comfort for this project.`);
-      }
-
-      return traits.join(" ");
+      return parts.join(" ");
     }
-
 
     // Sort by highest score
     scoredDesigners.sort((a, b) => b.score - a.score);

@@ -32,4 +32,23 @@ const createPortfolioPost = async (req, res) => {
     }
 };
 
-module.exports = { createPortfolioPost };
+const getUserPortfolioPosts = async (req, res) => {
+    try {
+        const designerId = req.userId || req.params.designerId;
+
+        if (!designerId) {
+            return res.status(400).json({ message: "Designer ID is required." });
+        }
+
+        const posts = await PortfolioPost.find({ designer: designerId }).sort({ createdAt: -1 });
+
+        res.status(200).json({ posts });
+    } catch (error) {
+        console.error("Error fetching portfolio posts:", error);
+        res.status(500).json({ message: "Failed to fetch portfolio posts." });
+    }
+};
+
+
+
+module.exports = { createPortfolioPost, getUserPortfolioPosts };
