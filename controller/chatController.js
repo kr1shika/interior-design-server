@@ -19,7 +19,8 @@ exports.sendMessageToRoom = async (req, res) => {
   try {
     const senderId = req.body.senderId;
     const { projectId } = req.params;
-    const { receiverId, text, attachments } = req.body;
+    const { receiverId, text } = req.body;
+    const attachments = req.files?.map(file => `/chatUploads/${file.filename}`) || [];
 
     const project = await Project.findById(projectId);
     if (!project) return res.status(404).json({ error: "Project not found" });
@@ -37,4 +38,3 @@ exports.sendMessageToRoom = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
-

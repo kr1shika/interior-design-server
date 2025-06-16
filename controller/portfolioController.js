@@ -3,7 +3,7 @@ const PortfolioPost = require("../model/portforlio-posts");
 const createPortfolioPost = async (req, res) => {
     try {
         const { title, room_type, tags, captions = [], primaryIndex = 0 } = req.body;
-        const designerId = req.userId || req.body.designer; // Assuming authentication middleware
+        const designerId = req.userId || req.body.designer;
 
         if (!req.files || req.files.length === 0) {
             return res.status(400).json({ message: "No images uploaded." });
@@ -20,15 +20,14 @@ const createPortfolioPost = async (req, res) => {
             title,
             room_type,
             tags: Array.isArray(tags) ? tags : [tags],
-
             images,
         });
 
         await post.save();
         res.status(201).json({ message: "Portfolio post created", post });
     } catch (error) {
-        console.error("Error creating portfolio post:", error);
-        res.status(500).json({ message: "Failed to create portfolio post" });
+        console.error("❌ Error creating portfolio post:", error); // <- this will help a lot
+        res.status(500).json({ message: "Failed to create portfolio post", error: error.message });
     }
 };
 

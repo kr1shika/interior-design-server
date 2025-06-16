@@ -18,6 +18,8 @@ require('dotenv').config();
 connectDB();
 dotenv.config({ path: "./config/config.env" });
 app.use("/profile_pics", express.static(path.join(__dirname, "profile_pics")));
+app.use("/portfolio_uploads", express.static(path.join(__dirname, "portfolio_uploads")));
+app.use("/chatUploads", express.static("chatUploads"));
 
 app.use(cors({
   origin: "http://localhost:5173",
