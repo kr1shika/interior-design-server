@@ -1,6 +1,6 @@
 const Project = require("../model/project.js");
 const Chatroom = require("../model/chat-room.js");
-
+const Notification = require("../model/user-notification.js");
 const getUserProjects = async (req, res) => {
   const userId = req.params.userId;
 
@@ -15,7 +15,6 @@ const getUserProjects = async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 };
-
 const createProject = async (req, res) => {
   try {
     const {
@@ -53,21 +52,34 @@ const createProject = async (req, res) => {
 
     await newProject.save();
 
-    // Step 2: Create a system message in chatroom to initialize it
+    // Step 2: Initialize chatroom
     const initialMessage = new Chatroom({
-      
-      senderId: client,            // could also use "system" user if you have one
+      senderId: client,
       receiverId: designer,
       projectId: newProject._id,
       text: `Chat room initialized for project "${title}".`,
       attachments: [],
-      read_by: [client] // mark as read by client initially
+      read_by: [client]
     });
 
     await initialMessage.save();
 
+    // ✅ Step 3: Create notification for the designer
+    const newNotification = new Notification({
+      user: designer,
+      title: "New Project Assigned",
+      message: `You have been assigned a new project titled "${title}".`,
+      type: "project_update",
+      related_entity: {
+        entity_type: "project",
+        entity_id: newProject._id
+      }
+    });
+
+    await newNotification.save();
+
     res.status(201).json({
-      message: "Project and chatroom initialized successfully",
+      message: "Project, chatroom, and notification created successfully",
       project: newProject
     });
   } catch (error) {

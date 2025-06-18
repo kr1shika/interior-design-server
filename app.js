@@ -31,6 +31,8 @@ app.use(express.json());
 const portfolioRouter = require("./route/portfolioROute");
 app.use("/api/portfolio", portfolioRouter);
 
+const notificationRoutes = require("./route/notificationRoute");
+app.use("/api/notifications", notificationRoutes);
 
 app.use("/api/user", userRouter);
 
