@@ -48,6 +48,4 @@ const getUserPortfolioPosts = async (req, res) => {
     }
 };
 
-
-
 module.exports = { createPortfolioPost, getUserPortfolioPosts };
