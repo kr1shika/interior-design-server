@@ -88,4 +88,60 @@ const createProject = async (req, res) => {
   }
 };
 
-module.exports = { createProject, getUserProjects };
+const updateProjectStatus = async (req, res) => {
+  const { projectId } = req.params;
+  const { status } = req.body;
+
+  const validStatuses = ["pending", "in_progress", "completed", "cancelled"];
+  if (!validStatuses.includes(status)) {
+    return res.status(400).json({ message: "Invalid project status provided." });
+  }
+
+  try {
+    const updatedProject = await Project.findByIdAndUpdate(
+      projectId,
+      { status },
+      { new: true } // return updated document
+    );
+
+    if (!updatedProject) {
+      return res.status(404).json({ message: "Project not found." });
+    }
+
+    // Optional: notify client and designer
+    const clientNotification = new Notification({
+      user: updatedProject.client,
+      title: "Project Status Updated",
+      message: `The status of your project "${updatedProject.title}" has been updated to "${status}".`,
+      type: "project_update",
+      related_entity: {
+        entity_type: "project",
+        entity_id: updatedProject._id,
+      },
+    });
+
+    const designerNotification = new Notification({
+      user: updatedProject.designer,
+      title: "Project Status Updated",
+      message: `The status of the project "${updatedProject.title}" has been updated to "${status}".`,
+      type: "project_update",
+      related_entity: {
+        entity_type: "project",
+        entity_id: updatedProject._id,
+      },
+    });
+
+    await Promise.all([clientNotification.save(), designerNotification.save()]);
+
+    res.status(200).json({
+      message: "Project status updated successfully.",
+      project: updatedProject,
+    });
+  } catch (error) {
+    console.error("Error updating project status:", error);
+    res.status(500).json({ message: "Internal server error." });
+  }
+};
+
+
+module.exports = { createProject, getUserProjects, updateProjectStatus };
