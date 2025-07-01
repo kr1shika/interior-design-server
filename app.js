@@ -33,6 +33,9 @@ app.use("/api/portfolio", portfolioRouter);
 
 const notificationRoutes = require("./route/notificationRoute");
 app.use("/api/notifications", notificationRoutes);
+const passwordChangeRoutes = require("./route/passwordchangeroute");
+app.use("/api/password-change", passwordChangeRoutes);
+
 
 app.use("/api/user", userRouter);
 

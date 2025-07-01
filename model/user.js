@@ -20,7 +20,6 @@ const userSchema = new mongoose.Schema({
     role: {
         type: String,
         enum: ["client", "designer"],
-        // required: true,
         default: "client"
     },
     profilepic: {
@@ -31,11 +30,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: false
     },
-    specialization: { // For designers
+    specialization: {
         type: String,
         required: false
     },
-    experience: { // For designers
+    experience: {
         type: Number,
         required: false
     },
@@ -65,10 +64,28 @@ const userSchema = new mongoose.Schema({
         default: []
     },
     approach: {
-        type: String, // e.g. "Balanced", "Decorative", "Functional"
+        type: String,
         default: "Balanced"
+    },
+    // Enhanced OTP fields for password change security
+    otp: {
+        type: String, // Store hashed OTP
+        required: false
+    },
+    otpExpiry: {
+        type: Date,
+        required: false
+    },
+    otpAttempts: {
+        type: Number,
+        default: 0
+    },
+    lastPasswordChange: {
+        type: Date,
+        required: false
     }
+});
 
-})
 const User = mongoose.model("User", userSchema);
 module.exports = User;
+

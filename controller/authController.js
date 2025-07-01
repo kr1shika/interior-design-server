@@ -165,43 +165,9 @@ const login = async (req, res) => {
     }
 };
 
-const logout = async (req, res) => {
-    try {
-        // Clear the HTTP-only cookie
-        res.clearCookie("interio_token", {
-            httpOnly: true,
-            sameSite: "lax",
-            secure: process.env.NODE_ENV === 'production'
-        });
 
-        // If using token blacklisting, add token to blacklist here
-        // await BlacklistedToken.create({ token: req.cookies?.interio_token });
 
-        // Log activity
-        if (req.user) {
-            console.log(`User logged out: ${req.user.email} at ${new Date().toISOString()}`);
-        }
 
-        res.status(200).json({ message: "Logged out successfully" });
-    } catch (error) {
-        console.error("Logout error:", error);
-        res.status(500).json({ errors: ["Internal server error"] });
-    }
-};
-
-// New endpoint for checking password strength
-const checkPasswordStrength = (req, res) => {
-    const { password } = req.body;
-    
-    if (!password) {
-        return res.status(400).json({ errors: ["Password is required"] });
-    }
-    
-    const strength = calculatePasswordStrength(password);
-    res.status(200).json(strength);
-};
-
-// New endpoint for changing password
 const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
     
@@ -269,7 +235,5 @@ const changePassword = async (req, res) => {
 module.exports = { 
     signup, 
     login, 
-    logout, 
-    checkPasswordStrength, 
     changePassword 
 };
