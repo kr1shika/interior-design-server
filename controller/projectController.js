@@ -64,7 +64,6 @@ const createProject = async (req, res) => {
 
     await initialMessage.save();
 
-    // ✅ Step 3: Create notification for the designer
     const newNotification = new Notification({
       user: designer,
       title: "New Project Assigned",
@@ -146,58 +145,51 @@ const updateProjectStatus = async (req, res) => {
 
 const updateProjectRoomDetails = async (req, res) => {
   const { projectId } = req.params;
-  const { userId } = req.user; // Assuming you have user info from auth middleware
 
   try {
     const {
-      room_images,
-      room_dimensions,
+      length,
+      width,
+      height,
       description
     } = req.body;
 
-    // Find the project and verify the user is the client
+    // Find the project
     const project = await Project.findById(projectId);
 
     if (!project) {
       return res.status(404).json({ message: "Project not found." });
     }
-
-    // Verify that the requesting user is the client of this project
-    if (project.client.toString() !== userId) {
-      return res.status(403).json({
-        message: "Access denied. Only the project client can update room details."
-      });
-    }
-
-    // Prepare update object with only provided fields
     const updateData = {};
 
-    if (room_images && Array.isArray(room_images)) {
+    // Handle uploaded room images
+    if (req.files && req.files.length > 0) {
+      console.log("✅ Room images received:", req.files.length, "files");
+      const newImagePaths = req.files.map(file => `/room_images/${file.filename}`);
       // Add new images to existing reference_images array
-      updateData.reference_images = [...(project.reference_images || []), ...room_images];
+      updateData.reference_images = [...(project.reference_images || []), ...newImagePaths];
     }
 
-    if (room_dimensions) {
-      // Validate dimensions
-      const { length, width, height } = room_dimensions;
-      if (length && width && height &&
-        typeof length === 'number' && typeof width === 'number' && typeof height === 'number') {
-        updateData.room_dimensions = {
-          length: parseFloat(length),
-          width: parseFloat(width),
-          height: parseFloat(height)
-        };
-      } else {
+    // Handle room dimensions
+    if (length || width || height) {
+      const parsedLength = length ? parseFloat(length) : project.room_dimensions?.length;
+      const parsedWidth = width ? parseFloat(width) : project.room_dimensions?.width;
+      const parsedHeight = height ? parseFloat(height) : project.room_dimensions?.height;
+
+      if (isNaN(parsedLength) || isNaN(parsedWidth) || isNaN(parsedHeight)) {
         return res.status(400).json({
-          message: "Invalid room dimensions. Please provide valid numeric values for length, width, and height."
+          message: "Invalid room dimensions. Please provide valid numeric values."
         });
       }
+
+      updateData.room_dimensions = {
+        length: parsedLength,
+        width: parsedWidth,
+        height: parsedHeight
+      };
     }
 
-    if (description && typeof description === 'string') {
-      // Note: Description should include client preferences, door and window placements,
-      // furniture placement preferences, lighting requirements, accessibility needs,
-      // and any specific functional requirements for the space
+    if (description) {
       updateData.description = description.trim();
     }
 
@@ -222,6 +214,7 @@ const updateProjectRoomDetails = async (req, res) => {
 
     await designerNotification.save();
 
+    console.log("✅ Room details updated for project:", project._id);
     res.status(200).json({
       message: "Room details updated successfully.",
       project: updatedProject,
@@ -229,10 +222,12 @@ const updateProjectRoomDetails = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("Error updating room details:", error);
+    console.error("❌ Error updating room details:", error);
     res.status(500).json({
-      message: "Internal server error.",
-      error: error.message
+      message: "Failed to update room details.",
+      errorType: error.name,
+      errorMessage: error.message,
+      stack: process.env.NODE_ENV !== "production" ? error.stack : undefined
     });
   }
 };

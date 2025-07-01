@@ -30,11 +30,6 @@ const getUserById = async (req, res) => {
 
 const updateUserProfile = async (req, res) => {
     try {
-        console.log("➡️ PUT /user/:id");
-        console.log("➡️ req.params:", req.params);
-        console.log("➡️ req.body:", req.body);
-        console.log("➡️ req.file:", req.file);
-
         const { id } = req.params;
 
         const user = await User.findById(id);

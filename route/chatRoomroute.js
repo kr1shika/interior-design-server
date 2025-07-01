@@ -1,22 +1,28 @@
-// const express = require("express");
-// const { getMessagesByProject, sendMessageToRoom } = require("../controller/chatController");
-// const router = express.Router();
-
-// router.get("/:projectId", getMessagesByProject);
-
-// router.post("/:projectId", sendMessageToRoom);
-
-// module.exports = router;
-
 // routes/chatRoutes.js
 const express = require("express");
 const router = express.Router();
 const { getMessagesByProject, sendMessageToRoom } = require("../controller/chatController");
 const upload = require("../config/uploads");
+const {
+    authenticateToken,
+    bruteForceProtection,
+    logActivity
+} = require("../middleware/authMiddleware");
 
-router.get("/:projectId", getMessagesByProject);
+// 🔐 Get chat messages - PROTECTED
+router.get("/:projectId",
+    authenticateToken,              // Verify JWT token
+    logActivity('view_chat'),       // Log chat access
+    getMessagesByProject
+);
 
-// This route accepts images in field `attachments`
-router.post("/:projectId", upload.array("attachments", 5), sendMessageToRoom); // limit to 5 files
+// 🔐 Send message - PROTECTED with rate limiting
+router.post("/:projectId",
+    authenticateToken,              // Verify JWT token
+    bruteForceProtection,           // Prevent message spam
+    upload.array("attachments", 5), // limit to 5 files
+    logActivity('send_message'),    // Log message sending
+    sendMessageToRoom
+);
 
 module.exports = router;
