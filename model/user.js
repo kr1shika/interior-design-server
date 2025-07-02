@@ -80,6 +80,10 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    otpVerified: { // NEW: Track if OTP has been verified
+        type: Boolean,
+        default: false
+    },
     lastPasswordChange: {
         type: Date,
         required: false
@@ -88,4 +92,3 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model("User", userSchema);
 module.exports = User;
-

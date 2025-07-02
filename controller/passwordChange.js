@@ -4,7 +4,6 @@ const User = require("../model/user");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
-
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -99,7 +98,6 @@ const requestPasswordChange = async (req, res) => {
         const user = await User.findOne({ email });
 
         // Always return success to prevent email enumeration
-        // This prevents attackers from knowing if an email exists in the system
         if (!user) {
             console.log(`⚠️ Password reset attempted for non-existent email: ${email}`);
             return res.status(200).json({ message: "If this email exists, an OTP has been sent" });
@@ -109,13 +107,12 @@ const requestPasswordChange = async (req, res) => {
         const hashedOTP = hashOTP(otp);
 
         user.otp = hashedOTP;
-        user.otpExpiry = Date.now() + 300000; // OTP expires in 5 minutes (shorter for security)
+        user.otpExpiry = Date.now() + 300000; // OTP expires in 5 minutes
         user.otpAttempts = 0; // Reset attempts counter
         await user.save();
 
         await sendOTP(email, otp);
 
-        // Log for monitoring (don't log actual OTP in production)
         console.log(`✅ OTP sent to ${email} from IP: ${clientIP}`);
         res.status(200).json({ message: "If this email exists, an OTP has been sent" });
     } catch (error) {
@@ -124,30 +121,19 @@ const requestPasswordChange = async (req, res) => {
     }
 };
 
-const verifyOTPAndChangePassword = async (req, res) => {
-    const { email, otp, newPassword } = req.body;
+// NEW: Verify OTP only (without changing password)
+const verifyOTPOnly = async (req, res) => {
+    const { email, otp } = req.body;
     const clientIP = req.ip || req.connection.remoteAddress;
 
     try {
         // Input validation
-        if (!email || !otp || !newPassword) {
-            return res.status(400).json({ message: "All fields are required" });
+        if (!email || !otp) {
+            return res.status(400).json({ message: "Email and OTP are required" });
         }
 
         if (!/^\d{6}$/.test(otp)) {
             return res.status(400).json({ message: "OTP must be 6 digits" });
-        }
-
-        // Strong password validation
-        if (newPassword.length < 8) {
-            return res.status(400).json({ message: "Password must be at least 8 characters long" });
-        }
-
-        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
-        if (!passwordRegex.test(newPassword)) {
-            return res.status(400).json({
-                message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
-            });
         }
 
         const user = await User.findOne({ email });
@@ -197,6 +183,77 @@ const verifyOTPAndChangePassword = async (req, res) => {
             });
         }
 
+        // OTP is valid - mark as verified but don't change password yet
+        user.otpVerified = true; // Add this field to track OTP verification
+        user.otpAttempts = 0; // Reset attempts since OTP is correct
+        await user.save();
+
+        console.log(`✅ OTP verified successfully for ${email} from IP: ${clientIP}`);
+        res.status(200).json({ message: "OTP verified successfully" });
+    } catch (error) {
+        console.error("❌ Error verifying OTP:", error);
+        res.status(500).json({ error: "Failed to verify OTP. Please try again." });
+    }
+};
+
+// UPDATED: Change password only (after OTP verification)
+const changePasswordAfterVerification = async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    const clientIP = req.ip || req.connection.remoteAddress;
+
+    try {
+        // Input validation
+        if (!email || !otp || !newPassword) {
+            return res.status(400).json({ message: "All fields are required" });
+        }
+
+        if (!/^\d{6}$/.test(otp)) {
+            return res.status(400).json({ message: "OTP must be 6 digits" });
+        }
+
+        // Strong password validation
+        if (newPassword.length < 8) {
+            return res.status(400).json({ message: "Password must be at least 8 characters long" });
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({
+                message: "Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character"
+            });
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return res.status(400).json({ message: "Invalid request" });
+        }
+
+        // Check if OTP was previously verified
+        if (!user.otpVerified || !user.otp || !user.otpExpiry) {
+            return res.status(400).json({ message: "Please verify your OTP first." });
+        }
+
+        // Check if OTP session hasn't expired
+        if (Date.now() > user.otpExpiry) {
+            user.otp = null;
+            user.otpExpiry = null;
+            user.otpAttempts = 0;
+            user.otpVerified = false;
+            await user.save();
+            return res.status(400).json({ message: "OTP session has expired. Please request a new one." });
+        }
+
+        // Verify OTP one more time for security
+        const hashedInputOTP = hashOTP(otp);
+        const isValidOTP = crypto.timingSafeEqual(
+            Buffer.from(hashedInputOTP, 'hex'),
+            Buffer.from(user.otp, 'hex')
+        );
+
+        if (!isValidOTP) {
+            return res.status(400).json({ message: "Invalid OTP." });
+        }
+
         // Check if new password is same as current password
         const isSamePassword = await bcrypt.compare(newPassword, user.password);
         if (isSamePassword) {
@@ -214,15 +271,11 @@ const verifyOTPAndChangePassword = async (req, res) => {
         user.otp = null;
         user.otpExpiry = null;
         user.otpAttempts = 0;
+        user.otpVerified = false;
         user.lastPasswordChange = new Date();
         await user.save();
 
-        // Log security event
         console.log(`✅ Password changed successfully for ${email} from IP: ${clientIP}`);
-
-        // Clear any existing sessions/tokens for this user (implement as needed)
-        // You might want to blacklist all existing JWT tokens for this user
-
         res.status(200).json({ message: "Password changed successfully" });
     } catch (error) {
         console.error("❌ Error changing password:", error);
@@ -265,6 +318,7 @@ const resendOTP = async (req, res) => {
         user.otp = hashedOTP;
         user.otpExpiry = Date.now() + 300000; // 5 minutes
         user.otpAttempts = 0; // Reset attempts
+        user.otpVerified = false; // Reset verification status
         await user.save();
 
         await sendOTP(email, otp);
@@ -279,7 +333,7 @@ const resendOTP = async (req, res) => {
 
 module.exports = {
     requestPasswordChange,
-    verifyOTPAndChangePassword,
+    verifyOTPOnly, // NEW method
+    changePasswordAfterVerification, // UPDATED method
     resendOTP
 };
-
