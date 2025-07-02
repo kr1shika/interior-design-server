@@ -333,7 +333,7 @@ const resendOTP = async (req, res) => {
 
 module.exports = {
     requestPasswordChange,
-    verifyOTPOnly, // NEW method
-    changePasswordAfterVerification, // UPDATED method
+    verifyOTPOnly,
+    changePasswordAfterVerification,
     resendOTP
 };
