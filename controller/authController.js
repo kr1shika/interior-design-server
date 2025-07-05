@@ -3,36 +3,25 @@ const { generateToken } = require("../config/util.js");
 const User = require("../model/user");
 const { trackLoginAttempt, checkAccountLock } = require("../middleware/authMiddleware");
 
-
-
 const signup = async (req, res) => {
     const { full_name, email, password, role } = req.body;
-
     try {
-        // Basic validation
         const errors = [];
         if (!full_name) errors.push("Full name is required");
         if (!email) errors.push("Email is required");
         if (!password) errors.push("Password is required");
         if (!role) errors.push("Role is required");
-        
+
         // Email format validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (email && !emailRegex.test(email)) {
             errors.push("Please enter a valid email address");
         }
-        
+
         // Role validation
         if (!["client", "designer"].includes(role)) {
             errors.push("Invalid role specified");
         }
-
-        // Enhanced password validation
-        if (password) {
-            const passwordErrors = validatePassword(password);
-            errors.push(...passwordErrors);
-        }
-
         if (errors.length > 0) {
             return res.status(400).json({ errors });
         }
@@ -91,8 +80,8 @@ const login = async (req, res) => {
     try {
         // Basic validation
         if (!email || !password) {
-            return res.status(400).json({ 
-                errors: ["Email and password are required"] 
+            return res.status(400).json({
+                errors: ["Email and password are required"]
             });
         }
 
@@ -118,8 +107,8 @@ const login = async (req, res) => {
 
         // Check if account is locked
         if (user.accountLocked) {
-            return res.status(423).json({ 
-                errors: ["Account is locked. Please contact support"] 
+            return res.status(423).json({
+                errors: ["Account is locked. Please contact support"]
             });
         }
 
@@ -127,14 +116,14 @@ const login = async (req, res) => {
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             trackLoginAttempt(normalizedEmail, false);
-            
+
             // Increment failed login attempts in database
             user.loginAttempts = (user.loginAttempts || 0) + 1;
             if (user.loginAttempts >= 5) {
                 user.accountLocked = true;
             }
             await user.save();
-            
+
             return res.status(401).json({ errors: ["Invalid credentials"] });
         }
 
@@ -170,11 +159,11 @@ const login = async (req, res) => {
 
 const changePassword = async (req, res) => {
     const { currentPassword, newPassword } = req.body;
-    
+
     try {
         if (!currentPassword || !newPassword) {
-            return res.status(400).json({ 
-                errors: ["Current password and new password are required"] 
+            return res.status(400).json({
+                errors: ["Current password and new password are required"]
             });
         }
 
@@ -189,20 +178,16 @@ const changePassword = async (req, res) => {
             return res.status(401).json({ errors: ["Current password is incorrect"] });
         }
 
-        // Validate new password
-        const passwordErrors = validatePassword(newPassword);
-        if (passwordErrors.length > 0) {
-            return res.status(400).json({ errors: passwordErrors });
-        }
+
 
         // Check password history to prevent reuse
         const isReused = await Promise.all(
             user.passwordHistory.map(oldHash => bcrypt.compare(newPassword, oldHash))
         );
-        
+
         if (isReused.some(match => match)) {
-            return res.status(400).json({ 
-                errors: ["Cannot reuse recent passwords"] 
+            return res.status(400).json({
+                errors: ["Cannot reuse recent passwords"]
             });
         }
 
@@ -212,12 +197,12 @@ const changePassword = async (req, res) => {
         // Update password and history
         user.password = hashedNewPassword;
         user.passwordHistory.push(hashedNewPassword);
-        
+
         // Keep only last 5 passwords
         if (user.passwordHistory.length > 5) {
             user.passwordHistory = user.passwordHistory.slice(-5);
         }
-        
+
         user.passwordChangedAt = new Date();
         await user.save();
 
@@ -232,8 +217,8 @@ const changePassword = async (req, res) => {
     }
 };
 
-module.exports = { 
-    signup, 
-    login, 
-    changePassword 
+module.exports = {
+    signup,
+    login,
+    changePassword
 };
