@@ -9,7 +9,6 @@ const {
 
 const path = require("path");
 
-// Fix: Ensure 'profile_pics' folder is created
 const fs = require("fs");
 const uploadDir = "profile_pics";
 if (!fs.existsSync(uploadDir)) {

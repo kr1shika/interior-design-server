@@ -21,7 +21,7 @@ const paymentSchema = new mongoose.Schema({
     },
     payment_type: {
         type: String,
-        enum: ["initial", "milestone", "full"],
+        enum: ["initial", "final"],
         required: true
     },
     payment_method: {

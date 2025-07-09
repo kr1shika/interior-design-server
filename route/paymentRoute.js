@@ -2,14 +2,13 @@ const express = require('express');
 const router = express.Router();
 const {
     createPayment,
-    getPaymentHistory
+    getPaymentHistory,
+    
 } = require('../controller/paymentController');
 
-
-// Create payment
+// Existing routes
 router.post('/create', createPayment);
-
-// Get payment history
 router.get('/history', getPaymentHistory);
+
 
 module.exports = router;

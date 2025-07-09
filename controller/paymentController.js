@@ -4,7 +4,7 @@ const Project = require('../model/project');
 // Create Payment (Simulated - No Auth)
 const createPayment = async (req, res) => {
     try {
-        const { amount, projectId, paymentType } = req.body; // Get userId from request body
+        const { amount, projectId, paymentType } = req.body;
 
         // Validate input
         const parsedAmount = Math.round(Number(amount));
@@ -24,6 +24,14 @@ const createPayment = async (req, res) => {
             });
         }
 
+        // Check existing payments for this project to determine the correct payment type
+        const existingPayments = await Payment.find({
+            project: projectId,
+            status: "succeeded"
+        });
+
+        console.log('Existing payments for project:', existingPayments.length);
+
         // Create payment record
         const payment = new Payment({
             project: projectId,
@@ -37,18 +45,38 @@ const createPayment = async (req, res) => {
 
         await payment.save();
 
-        // Update project payment status
-        if (paymentType === 'initial') {
-            project.payment = 'half-installment';
+        // Update project payment status based on payment type and existing payments
+        let newPaymentStatus = project.payment;
+
+        if (paymentType === 'initial' || paymentType === 'half') {
+            // First payment (50%)
+            newPaymentStatus = 'half-installment';
         } else if (paymentType === 'final') {
-            project.payment = 'completed';
+            // Final payment (remaining 50%)
+            newPaymentStatus = 'completed';
+        } else if (paymentType === 'full') {
+            // Full payment (100% at once)
+            newPaymentStatus = 'completed';
         }
-        await project.save();
+
+        // Double-check: if this is the second successful payment, mark as completed
+        const totalSuccessfulPayments = existingPayments.length + 1; // +1 for the current payment
+        if (totalSuccessfulPayments >= 2) {
+            newPaymentStatus = 'completed';
+        }
+
+        // Update the project
+        await Project.findByIdAndUpdate(projectId, {
+            payment: newPaymentStatus
+        });
+
+        console.log(`Payment processed: ${paymentType}, Project payment status updated to: ${newPaymentStatus}`);
 
         res.json({
             success: true,
             payment: payment,
-            message: 'Payment completed successfully!'
+            message: 'Payment completed successfully!',
+            projectPaymentStatus: newPaymentStatus
         });
 
     } catch (error) {
@@ -66,12 +94,10 @@ const getPaymentHistory = async (req, res) => {
     try {
         const { projectId } = req.query;
 
-
-
-        // const filter = { user: userId };
-        // if (projectId) {
-        //     filter.project = projectId;
-        // }
+        const filter = {};
+        if (projectId) {
+            filter.project = projectId;
+        }
 
         const payments = await Payment.find(filter)
             .populate('project', 'title')
@@ -92,7 +118,9 @@ const getPaymentHistory = async (req, res) => {
     }
 };
 
+
 module.exports = {
     createPayment,
-    getPaymentHistory
+    getPaymentHistory,
+
 };
