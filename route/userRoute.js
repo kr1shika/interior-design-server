@@ -3,6 +3,7 @@ const router = express.Router();
 const multer = require("multer");
 const {
     getAllDesigners,
+    getDesignersByStyle,
     getUserById,
     updateUserProfile,
 } = require("../controller/userController");
@@ -28,6 +29,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 router.get("/getAllDesigners", getAllDesigners);
+router.get("/style/:style", getDesignersByStyle); // New route for filtering by style
 router.get("/:id", getUserById);
 router.put("/:id", upload.single("profilepic"), updateUserProfile);
 

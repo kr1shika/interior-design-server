@@ -67,7 +67,6 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "Balanced"
     },
-    // Enhanced OTP fields for password change security
     otp: {
         type: String, // Store hashed OTP
         required: false

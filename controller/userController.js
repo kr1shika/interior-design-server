@@ -13,6 +13,40 @@ const getAllDesigners = async (req, res) => {
     }
 };
 
+// Get designers by style/specialization
+const getDesignersByStyle = async (req, res) => {
+    try {
+        const { style } = req.params;
+
+        console.log(`🔍 Searching for designers with style: ${style}`);
+
+        // Create a case-insensitive regex pattern for the style
+        const styleRegex = new RegExp(style, 'i');
+
+        // Find designers whose specialization matches the requested style
+        const designers = await User.find({
+            role: "designer",
+            specialization: { $regex: styleRegex }
+        }).select("-password");
+
+        console.log(`✅ Found ${designers.length} designers for style: ${style}`);
+
+        // Log what specializations we found
+        designers.forEach(designer => {
+            console.log(`👤 ${designer.full_name}: specialization = "${designer.specialization}"`);
+        });
+
+        res.status(200).json({
+            style: style,
+            count: designers.length,
+            designers: designers
+        });
+    } catch (error) {
+        console.error("Error fetching designers by style:", error);
+        res.status(500).json({ message: "Failed to fetch designers by style" });
+    }
+};
+
 // Get a specific user by ID
 const getUserById = async (req, res) => {
     try {
@@ -26,7 +60,6 @@ const getUserById = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch user" });
     }
 };
-
 
 const updateUserProfile = async (req, res) => {
     try {
@@ -91,10 +124,9 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
-
-
 module.exports = {
     getAllDesigners,
+    getDesignersByStyle,
     getUserById,
     updateUserProfile,
 };
