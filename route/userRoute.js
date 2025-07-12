@@ -5,7 +5,7 @@ const {
     getAllDesigners,
     getDesignersByStyle,
     getUserById,
-    updateUserProfile,
+    updateUserProfile, searchDesigners
 } = require("../controller/userController");
 
 const path = require("path");
@@ -32,5 +32,5 @@ router.get("/getAllDesigners", getAllDesigners);
 router.get("/style/:style", getDesignersByStyle); // New route for filtering by style
 router.get("/:id", getUserById);
 router.put("/:id", upload.single("profilepic"), updateUserProfile);
-
+router.get("/search/:query", searchDesigners);
 module.exports = router;

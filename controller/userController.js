@@ -124,9 +124,42 @@ const updateUserProfile = async (req, res) => {
     }
 };
 
+
+// Search designers by name or specialization
+const searchDesigners = async (req, res) => {
+    try {
+        const { query } = req.params;
+
+        console.log(`🔍 Searching designers with query: ${query}`);
+
+        // Case-insensitive regex for both full_name and specialization
+        const regex = new RegExp(query, 'i');
+
+        const designers = await User.find({
+            role: "designer",
+            $or: [
+                { full_name: { $regex: regex } },
+                { specialization: { $regex: regex } }
+            ]
+        }).select("-password");
+
+        console.log(`✅ Found ${designers.length} designers matching query: "${query}"`);
+
+        res.status(200).json({
+            query: query,
+            count: designers.length,
+            designers: designers
+        });
+    } catch (error) {
+        console.error("Error searching designers:", error);
+        res.status(500).json({ message: "Failed to search designers" });
+    }
+};
+
 module.exports = {
     getAllDesigners,
     getDesignersByStyle,
     getUserById,
     updateUserProfile,
+    searchDesigners
 };
